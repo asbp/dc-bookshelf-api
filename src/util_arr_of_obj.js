@@ -14,6 +14,10 @@ class ArrayOfObjectQueryBuilder {
         return this.#arrayOfObj;
     }
 
+    getContents() {
+        return this.#arrayOfObj;
+    }
+
     _backupOriginal() {
         this.#arrayOrig = this.#arrayOfObj;
     }

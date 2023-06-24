@@ -33,7 +33,7 @@ const bookListsHander = (req, h) => {
     myBooks.select(['id', 'name', 'publisher']);
 
     return compileHttp200fromContent(h, {
-        books: myBooks.contents,
+        books: myBooks.getContents(),
     });
 };
 
