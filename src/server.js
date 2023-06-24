@@ -15,6 +15,11 @@ const main = async () => {
     const server = hapi.server({
         port: 9000,
         host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
+        routes: {
+            cors: {
+                origin: ['*'],
+            },
+        },
     });
 
     server.route([

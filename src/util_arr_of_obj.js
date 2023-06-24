@@ -65,6 +65,16 @@ class ArrayOfObjectQueryBuilder {
 
         return this;
     }
+
+    whereLike(column, term) {
+        let result = [];
+
+        result = this.#arrayOfObj.filter(value => String(value[column]).toUpperCase().includes(String(term).toUpperCase()));
+
+        this.#arrayOfObj = result;
+
+        return this;
+    }
 }
 
 module.exports = ArrayOfObjectQueryBuilder;

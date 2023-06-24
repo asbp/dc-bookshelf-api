@@ -18,7 +18,7 @@ const ArrayOfObjectQueryBuilder = require('./util_arr_of_obj');
 const books = require('./books');
 
 const bookListsHander = (req, h) => {
-    const { reading, finished } = req.query;
+    const { reading, finished, name } = req.query;
 
     const myBooks = new ArrayOfObjectQueryBuilder(books);
 
@@ -28,6 +28,10 @@ const bookListsHander = (req, h) => {
 
     if (finished != null) {
         myBooks.where('finished', Boolean(finished == '1'));
+    }
+
+    if (name != null) {
+        myBooks.whereLike('name', name);
     }
 
     myBooks.select(['id', 'name', 'publisher']);
