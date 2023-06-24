@@ -5,7 +5,6 @@ const {
     addBookHandler, editBookHandler, deleteBookHandler
 } = require("./handlers");
 
-
 const main = async () => {
     const server = hapi.server({
         port: 9000,

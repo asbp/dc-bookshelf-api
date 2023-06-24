@@ -1,11 +1,7 @@
-const books = require("./books");
-
-class ValidationException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "ValidationException";
-    }
-}
+/* eslint-disable indent */
+const { HttpError,
+    HttpPayloadNotValidError,
+    HttpNotFoundError } = require('./errors');
 
 const validateInput = (payloadObj, propNames = []) => {
     let result = {};
@@ -25,24 +21,24 @@ const validateInput = (payloadObj, propNames = []) => {
     const addToResult = (key, value) => {
         let valueReal = value;
 
-        valueReal = value === 'true' || (value === 'false' ? false : value);
-
         if (!Number.isNaN(parseInt(value))) {
             valueReal = parseInt(value)
+        } else {
+            valueReal = (value === 'true') || (value === 'false' ? false : value);
         }
 
         result = { ...result, [key]: valueReal };
     };
 
     if (payloadObj == null) {
-        throw new ValidationException(`Tidak ada data yang dimasukkan.`);
+        throw new ValidationException("Tidak ada payload");
     }
 
     for (let prop of propNames) {
         if (typeof prop === "string") {
             handleStringProp(prop);
-        }
-        else if (typeof prop === "object") {
+
+        } else if (typeof prop === "object") {
             const key = Object.keys(prop)[0];
             let value = payloadObj[key];
             const config = Object.values(prop)[0];
@@ -110,17 +106,16 @@ const validateInput = (payloadObj, propNames = []) => {
 };
 
 const getLocalDateObj = () => {
-    let hoursOffset = -(new Date().getTimezoneOffset() / 60)
+    let hoursOffset = new Date().getTimezoneOffset() / 60
 
-    let d = new Date();
-    d.setHours(d.getHours() + hoursOffset);
+    let dateInstance = new Date();
+    dateInstance.setHours(dateInstance.getHours() - hoursOffset);
 
-    return d;
+    return dateInstance;
 }
 
 const select = (arrayOfObj, keys = []) => {
-    if (keys.length < 1 || arrayOfObj == null)
-        return [];
+    if (keys.length < 1 || arrayOfObj == null) return [];
     let result = [];
 
     for (let data of arrayOfObj) {
@@ -129,8 +124,7 @@ const select = (arrayOfObj, keys = []) => {
         for (let key of keys) {
             let value = data[key];
 
-            if (typeof value === "undefined")
-                continue;
+            if (typeof value === "undefined") continue;
 
             newObj = {
                 ...newObj,
@@ -143,7 +137,10 @@ const select = (arrayOfObj, keys = []) => {
 };
 
 const processException = (e, prependMsg, h) => {
-    let data = {}
+    let data = {
+        "status": "fail",
+        "message": "Error while processing. Please try again."
+    };
     let statusCode = 500;
 
     if (e instanceof ValidationException) {
@@ -154,10 +151,7 @@ const processException = (e, prependMsg, h) => {
         statusCode = 400;
     }
 
-    return h.response(data)
-        .header('cache-control', 'no-cache')
-        .type('application/json')
-        .code(statusCode);
+    return compileResponse(h, statusCode, data)
 }
 
 const compileResponse = (h, code, data) => {
@@ -167,19 +161,35 @@ const compileResponse = (h, code, data) => {
         .code(code);
 }
 
-const findBook = (id) => {
-    let findBookIdx = findBookIndex(id);
+const findBook = (booksArray, id) => {
+    let findBookIdx = findBookIndex(booksArray, id);
 
-    return findBookIdx > -1 ? books[findBookIdx] : undefined;
+    return findBookIdx > -1 ? booksArray[findBookIdx] : undefined;
 }
 
-const findBookIndex = (id) => books.findIndex(v => v.id === id)
+const findBookIndex = (booksArray, id) => booksArray.findIndex(v => v.id === id)
 
-const checkBook = (req, h, bookId, msgIfNotFound = "ID tidak ditemukan") => {
-    let book = findBook(bookId);
+const checkBook = (req, books, h, bookId, msgIfNotFound = "ID tidak ditemukan") => {
+    let book = findBook(books, bookId);
 
     if (!book) {
-        return compileResponse(h, 500, {
+        throw new HttpNotFoundError(msgIfNotFound);
+    }
+
+    return compileResponse(h, 200, {
+        "status": "success",
+        "data": {
+            "book": book
+        }
+    });
+}
+
+//
+const __checkBook = (req, books, h, bookId, msgIfNotFound = "ID tidak ditemukan") => {
+    let book = findBook(books, bookId);
+
+    if (!book) {
+        return compileResponse(h, 404, {
             "status": "fail",
             "message": msgIfNotFound
         })
@@ -187,7 +197,9 @@ const checkBook = (req, h, bookId, msgIfNotFound = "ID tidak ditemukan") => {
 
     return compileResponse(h, 200, {
         "status": "success",
-        "data": book
+        "data": {
+            "book": book
+        }
     });
 }
 
