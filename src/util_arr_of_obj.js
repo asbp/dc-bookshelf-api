@@ -1,3 +1,6 @@
+/* eslint-disable eqeqeq */
+
+/* eslint-disable indent */
 class ArrayOfObjectQueryBuilder {
     #arrayOfObj;
     #arrayOrig;
@@ -8,7 +11,7 @@ class ArrayOfObjectQueryBuilder {
     }
 
     get contents() {
-        return this.#arrayOfObj
+        return this.#arrayOfObj;
     }
 
     _backupOriginal() {
@@ -21,23 +24,24 @@ class ArrayOfObjectQueryBuilder {
     }
 
     select(keys) {
-        //if (keys.length < 1 || this.#arrayOfObj == null) return [];
+        const result = [];
 
-        let result = [];
-
-        for (let data of this.#arrayOfObj) {
+        for (const data of this.#arrayOfObj) {
             let newObj = {};
 
-            for (let key of keys) {
-                let value = data[key];
+            for (const key of keys) {
+                const value = data[key];
 
-                if (typeof value === "undefined") continue;
+                if (typeof value === 'undefined') {
+                    continue;
+                }
 
                 newObj = {
                     ...newObj,
-                    [key]: value
+                    [key]: value,
                 };
             }
+
             result.push(newObj);
         }
 
@@ -49,11 +53,11 @@ class ArrayOfObjectQueryBuilder {
     }
 
     where(column, term) {
-        //if (keys.length < 1 || this.#arrayOfObj == null) return [];
-
         let result = [];
 
-        this.#arrayOfObj = this.#arrayOfObj.filter((value, index, array) => value[column] === term);
+        result = this.#arrayOfObj.filter(value => value[column] == term);
+
+        this.#arrayOfObj = result;
 
         return this;
     }
